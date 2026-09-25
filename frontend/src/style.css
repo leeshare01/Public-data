@@ -1,0 +1,243 @@
+/* ============================================================
+   TailwindCSS v4 — 设计系统令牌 + 全局样式
+   移植自 homepage_v2.html
+   ============================================================ */
+@import "tailwindcss";
+
+/* ---- 设计 Token ---- */
+@theme {
+  /* Colors */
+  --color-ink: #0d253d;
+  --color-ink-secondary: #273951;
+  --color-ink-mute: #64748d;
+  --color-primary: #533afd;
+  --color-primary-deep: #4434d4;
+  --color-primary-press: #2e2b8c;
+  --color-primary-soft: #665efd;
+  --color-primary-bg-subdued: #b9b9f9;
+  --color-canvas: #ffffff;
+  --color-canvas-soft: #f6f9fc;
+  --color-hairline: #e3e8ee;
+  --color-hairline-input: #a8c3de;
+  --color-ruby: #ea2261;
+  --color-magenta: #f96bee;
+  --color-amber: #f59e0b;
+  --color-emerald: #10b981;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0, 55, 112, 0.08);
+  --shadow-card-hover: 0 8px 24px rgba(0, 55, 112, 0.08), 0 2px 6px rgba(0, 55, 112, 0.04);
+  --shadow-float: 0 4px 20px rgba(0, 55, 112, 0.12), 0 1px 4px rgba(0, 55, 112, 0.08);
+
+  /* Border Radius */
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+
+  /* Font */
+  --font-family-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+}
+
+/* ---- 基础层 ---- */
+@layer base {
+  html {
+    font-feature-settings: "ss01";
+  }
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    margin: 0;
+  }
+}
+
+/* ---- 渐变网格背景 ---- */
+.gradient-mesh {
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(245, 233, 212, 0.9) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 85% 15%, rgba(249, 107, 238, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 50% 10%, rgba(83, 58, 253, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 70% 25%, rgba(234, 34, 97, 0.15) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(246, 249, 252, 0.6) 0%, #ffffff 100%);
+  filter: blur(0.5px);
+}
+
+/* ---- 搜索框发光 ---- */
+.search-glow:focus-within {
+  box-shadow: 0 0 0 3px rgba(83, 58, 253, 0.12), 0 4px 20px rgba(0, 55, 112, 0.08);
+}
+
+/* ---- 动画 ---- */
+@keyframes cartBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.cart-bounce {
+  animation: cartBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardEnter {
+  to { opacity: 1; transform: translateY(0); }
+}
+.card-enter {
+  animation: cardEnter 0.5s ease-out forwards;
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+.heart-anim {
+  animation: heartPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---- 行数截断 ---- */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- 隐藏滚动条 ---- */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ---- 模态框 ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+.modal-overlay.active {
+  pointer-events: auto;
+}
+.modal-overlay .backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 37, 61, 0.25);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.modal-overlay.active .backdrop {
+  opacity: 1;
+}
+.modal-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.96);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+  will-change: transform, opacity;
+}
+.modal-overlay.active .modal-panel {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.modal-panel::-webkit-scrollbar { width: 4px; }
+.modal-panel::-webkit-scrollbar-track { background: transparent; }
+.modal-panel::-webkit-scrollbar-thumb { background: #e3e8ee; border-radius: 2px; }
+
+/* ---- Toast 动画 ---- */
+.toast-show {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* ---- 商品图片渐变遮罩 ---- */
+.product-image-container {
+  position: relative;
+  overflow: hidden;
+}
+.product-image-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ---- 组件样式 ---- */
+.filter-btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 400;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.filter-btn:not(.active) {
+  background: white;
+  color: var(--color-ink-mute);
+  border-color: var(--color-hairline);
+}
+.filter-btn:not(.active):hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.auth-tab {
+  cursor: pointer;
+  min-width: 80px;
+}
+.auth-tab.active {
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 55, 112, 0.08);
+}
+
+.sku-btn {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 400;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s;
+  cursor: pointer;
+  background: white;
+  color: var(--color-ink-mute);
+  border: 1px solid var(--color-hairline);
+}
+.sku-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.sku-btn.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+/* ---- 数字等宽 ---- */
+.font-tabular {
+  font-feature-settings: "tnum", "ss01";
+}
+
+/* ---- 页面布局容器 ---- */
+.page-container {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}

@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商城 - 极简购物体验</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        ink: '#0d253d',
+                        'ink-secondary': '#273951',
+                        'ink-mute': '#64748d',
+                        primary: '#533afd',
+                        'primary-deep': '#4434d4',
+                        'primary-press': '#2e2b8c',
+                        'primary-soft': '#665efd',
+                        'primary-bg-subdued': '#b9b9f9',
+                        canvas: '#ffffff',
+                        'canvas-soft': '#f6f9fc',
+                        hairline: '#e3e8ee',
+                        'hairline-input': '#a8c3de',
+                        ruby: '#ea2261',
+                        magenta: '#f96bee',
+                        amber: '#f59e0b',
+                        emerald: '#10b981',
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,55,112,0.08)',
+                        'card-hover': '0 8px 24px rgba(0,55,112,0.08), 0 2px 6px rgba(0,55,112,0.04)',
+                        'float': '0 4px 20px rgba(0,55,112,0.12), 0 1px 4px rgba(0,55,112,0.08)',
+                    },
+                    borderRadius: {
+                        'xl': '16px',
+                        'pill': '9999px',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            font-feature-settings: "ss01";
+            background-color: #ffffff;
+            color: #0d253d;
+        }
+        .font-tabular {
+            font-feature-settings: "tnum", "ss01";
+        }
+        .gradient-mesh {
+            background:
+                radial-gradient(ellipse 80% 60% at 15% 20%, rgba(245,233,212,0.9) 0%, transparent 60%),
+                radial-gradient(ellipse 70% 50% at 85% 15%, rgba(249,107,238,0.25) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 50% 10%, rgba(83,58,253,0.18) 0%, transparent 50%),
+                radial-gradient(ellipse 50% 40% at 70% 25%, rgba(234,34,97,0.15) 0%, transparent 45%),
+                linear-gradient(180deg, rgba(246,249,252,0.6) 0%, #ffffff 100%);
+            filter: blur(0.5px);
+        }
+        .search-glow:focus-within {
+            box-shadow: 0 0 0 3px rgba(83,58,253,0.12), 0 4px 20px rgba(0,55,112,0.08);
+        }
+        .cart-bounce {
+            animation: cartBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes cartBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        .card-enter {
+            animation: cardEnter 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        @keyframes cardEnter {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .product-image-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .product-image-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to top, rgba(255,255,255,0.8) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* Modal Backdrop */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .modal-overlay.active {
+            pointer-events: auto;
+        }
+        .modal-overlay .backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(13,37,61,0.25);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .modal-overlay.active .backdrop {
+            opacity: 1;
+        }
+        .modal-panel {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.96);
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+            will-change: transform, opacity;
+        }
+        .modal-overlay.active .modal-panel {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Toast animation */
+        .toast-show {
+            transform: translateY(0) !important;
+            opacity: 1 !important;
+        }
+
+        /* Heart fill animation */
+        .heart-anim {
+            animation: heartPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes heartPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* Custom scrollbar for modals */
+        .modal-panel::-webkit-scrollbar { width: 4px; }
+        .modal-panel::-webkit-scrollbar-track { background: transparent; }
+        .modal-panel::-webkit-scrollbar-thumb { background: #e3e8ee; border-radius: 2px; }
+    </style>
+</head>
+<body class="min-h-screen bg-canvas">
+
+    <!-- Gradient Mesh Hero Backdrop -->
+    <div class="fixed inset-0 gradient-mesh pointer-events-none z-0" style="height: 45vh;"></div>
+
+    <!-- ==================== NAVIGATION ==================== -->
+    <nav class="relative z-10 px-6 lg:px-12 py-5 flex items-center justify-between">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="resetAll()">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+            </div>
+            <span class="text-xl font-light tracking-tight text-ink" style="letter-spacing: -0.64px;">商城</span>
+        </div>
+        <div class="hidden md:flex items-center gap-8 text-[15px] font-light">
+            <a href="#" class="text-primary font-normal" data-nav="home" onclick="return showHomeView()">首页</a>
+            <a href="#" class="text-ink-mute hover:text-primary transition-colors duration-200" data-nav="products" onclick="return showCategoryView('all')">商品</a>
+            <a href="#" class="text-ink-mute hover:text-primary transition-colors duration-200" data-nav="wishlist" onclick="return showWishlistView()">收藏</a>
+            <a href="#" class="text-ink-mute hover:text-primary transition-colors duration-200" data-nav="about">关于</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="authDisplay">
+                <button id="loginBtn" class="hidden sm:block px-4 py-2 text-[14px] font-normal text-primary hover:bg-primary-bg-subdued rounded-pill transition-colors duration-200">
+                    登录
+                </button>
+            </div>
+            <button id="registerNavBtn" class="px-5 py-2.5 bg-primary text-white text-[14px] font-normal rounded-pill hover:bg-primary-deep active:bg-primary-press transition-colors duration-200 shadow-card">
+                注册
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== HERO + SEARCH ==================== -->
+    <section class="relative z-10 px-6 lg:px-12 pt-12 pb-8 text-center">
+        <h1 class="text-[48px] font-light leading-[1.15] tracking-tight text-ink mb-4" style="letter-spacing: -0.96px;">
+            发现心仪好物
+        </h1>
+        <p class="text-[16px] font-light text-ink-mute mb-8 max-w-md mx-auto leading-relaxed">
+            精选品质商品，极简购物体验
+        </p>
+
+        <!-- Search Bar -->
+        <div class="max-w-2xl mx-auto relative search-glow rounded-xl transition-shadow duration-300">
+            <div class="relative flex items-center bg-white rounded-xl border border-hairline-input shadow-card hover:shadow-card-hover transition-shadow duration-300">
+                <svg class="absolute left-5 w-5 h-5 text-ink-mute" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="搜索商品名称或类别..."
+                    class="w-full pl-14 pr-32 py-4 bg-transparent text-[15px] font-light text-ink placeholder-ink-mute focus:outline-none rounded-xl"
+                >
+                <button
+                    id="searchBtn"
+                    class="absolute right-2 px-6 py-2.5 bg-primary text-white text-[14px] font-normal rounded-pill hover:bg-primary-deep active:bg-primary-press transition-colors duration-200"
+                >
+                    搜索
+                </button>
+            </div>
+        </div>
+
+        <!-- Hot Tags -->
+        <div class="flex items-center justify-center gap-3 mt-5 flex-wrap">
+            <span class="text-[13px] font-normal text-ink-mute">热门:</span>
+            <button class="px-3 py-1.5 bg-primary-bg-subdued text-primary-deep text-[11px] font-normal rounded-pill hover:bg-primary-soft hover:text-white transition-colors duration-200" data-tag="耳机" onclick="searchTag('耳机')">耳机</button>
+            <button class="px-3 py-1.5 bg-primary-bg-subdued text-primary-deep text-[11px] font-normal rounded-pill hover:bg-primary-soft hover:text-white transition-colors duration-200" data-tag="手表" onclick="searchTag('手表')">手表</button>
+            <button class="px-3 py-1.5 bg-primary-bg-subdued text-primary-deep text-[11px] font-normal rounded-pill hover:bg-primary-soft hover:text-white transition-colors duration-200" data-tag="键盘" onclick="searchTag('键盘')">键盘</button>
+            <button class="px-3 py-1.5 bg-primary-bg-subdued text-primary-deep text-[11px] font-normal rounded-pill hover:bg-primary-soft hover:text-white transition-colors duration-200" data-tag="音箱" onclick="searchTag('音箱')">音箱</button>
+        </div>
+    </section>
+
+    <!-- ==================== PRODUCT GRID SECTION ==================== -->
+    <section class="relative z-10 px-6 lg:px-12 pb-24">
+        <!-- Filter & Sort Bar -->
+        <div class="mb-8">
+            <!-- Category Filter -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button class="filter-btn active" data-category="all" onclick="filterByCategory('all')">
+                    全部
+                </button>
+                <button class="filter-btn" data-category="数码" onclick="filterByCategory('数码')">
+                    数码
+                </button>
+                <button class="filter-btn" data-category="家居" onclick="filterByCategory('家居')">
+                    家居
+                </button>
+                <button class="filter-btn" data-category="配饰" onclick="filterByCategory('配饰')">
+                    配饰
+                </button>
+                <div class="flex-1"></div>
+                <!-- Sort -->
+                <select id="sortSelect" onchange="changeSort(this.value)" class="px-4 py-2 bg-white border border-hairline rounded-lg text-[14px] font-light text-ink-mute focus:outline-none focus:border-primary cursor-pointer">
+                    <option value="default">默认排序</option>
+                    <option value="price-asc">价格从低到高</option>
+                    <option value="price-desc">价格从高到低</option>
+                    <option value="newest">最新上架</option>
+                </select>
+            </div>
+            <!-- View Mode Indicator -->
+            <div class="flex items-center justify-between mt-3">
+                <p class="text-[13px] font-normal text-ink-mute">
+                    <span id="viewLabel">全部商品</span>
+                    ｜共 <span id="productCount" class="font-tabular">12</span> 件
+                    <span id="showingCount" class="text-ink-mute/60"></span>
+                </p>
+                <button id="clearFilterBtn" onclick="clearFilters()" class="text-[12px] font-normal text-ink-mute hover:text-primary transition-colors hidden">
+                    清除筛选 ✕
+                </button>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-5">
+            <!-- Rendered by JS -->
+        </div>
+
+        <!-- Load More / End indicator -->
+        <div id="loadMoreArea" class="text-center mt-12">
+            <button id="loadMoreBtn" onclick="loadMore()" class="px-8 py-3 bg-white border border-hairline text-ink text-[14px] font-normal rounded-pill hover:border-primary hover:text-primary transition-colors duration-200 shadow-card">
+                加载更多
+            </button>
+            <p id="loadEnd" class="text-[13px] font-normal text-ink-mute/60 hidden">— 已显示全部商品 —</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex flex-col items-center justify-center py-20 text-center">
+            <div class="w-24 h-24 rounded-2xl bg-canvas-soft flex items-center justify-center mb-4">
+                <svg class="w-12 h-12 text-ink-mute/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="text-[16px] font-light text-ink-mute">暂无匹配的商品</p>
+            <button onclick="clearFilters()" class="mt-4 px-5 py-2 bg-primary text-white text-[13px] font-normal rounded-pill hover:bg-primary-deep transition-colors">
+                清除筛选
+            </button>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="relative z-10 border-t border-hairline bg-canvas-soft">
+        <div class="px-6 lg:px-12 py-16">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                            </svg>
+                        </div>
+                        <span class="text-lg font-light text-ink">商城</span>
+                    </div>
+                    <p class="text-[13px] font-normal text-ink-mute leading-relaxed">精选品质商品<br>极简购物体验</p>
+                </div>
+                <div>
+                    <h4 class="text-[13px] font-normal text-ink mb-4 uppercase tracking-wider" style="letter-spacing: 0.1px;">商品</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#" class="text-[13px] font-normal text-ink-mute hover:text-primary transition-colors" onclick="return filterByCategory('数码')">数码电子</a></li>
+                        <li><a href="#" class="text-[13px] font-normal text-ink-mute hover:text-primary transition-colors" onclick="return filterByCategory('家居')">生活家居</a></li>
+                        <li><a href="#" class="text-[13px] font-normal text-ink-mute hover:text-primary transition-colors" onclick="return filterByCategory('配饰')">时尚配饰</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-[13px] font-normal text-ink mb-4 uppercase tracking-wider" style="letter-spacing: 0.1px;">服务</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#" class="text-[13px] font-normal text-ink-mute hover:text-primary transition-colors">配送说明</a></li>
+                        <li><a href="#" class="text-[13px] font-normal text-ink-mute hover:text-primary transition-colors">退换政策</a></li>
+                        <li><a href="#" class="text-[13px] font-normal text-ink-mute hover:text-primary transition-colors">联系客服</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-[13px] font-normal text-ink mb-4 uppercase tracking-wider" style="letter-spacing: 0.1px;">关注我们</h4>
+                    <div class="flex items-center gap-3">
+                        <a href="#" class="w-9 h-9 rounded-lg bg-white border border-hairline flex items-center justify-center hover:border-primary hover:bg-primary-bg-subdued transition-colors duration-200">
+                            <svg class="w-4 h-4 text-ink-mute" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-lg bg-white border border-hairline flex items-center justify-center hover:border-primary hover:bg-primary-bg-subdued transition-colors duration-200">
+                            <svg class="w-4 h-4 text-ink-mute" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t border-hairline flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-[11px] font-light text-ink-mute"> 2024 商城. 保留所有权利.</p>
+                <div class="flex items-center gap-6">
+                    <a href="#" class="text-[11px] font-light text-ink-mute hover:text-primary transition-colors">隐私政策</a>
+                    <a href="#" class="text-[11px] font-light text-ink-mute hover:text-primary transition-colors">服务条款</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== FLOATING: CART + WISHLIST ==================== -->
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+        <!-- Wishlist FAB -->
+        <button id="wishlistFab" onclick="toggleWishlistView()" class="w-14 h-14 bg-white border border-hairline text-ink rounded-full shadow-float hover:shadow-card-hover hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center group relative">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            <span id="wishlistBadge" class="absolute -top-1 -right-1 w-5 h-5 bg-ruby text-white text-[10px] font-normal rounded-full flex items-center justify-center opacity-0 scale-0 transition-all duration-300">0</span>
+        </button>
+        <!-- Cart FAB -->
+        <button id="cartBtn" onclick="toggleCart(true)" class="w-14 h-14 bg-primary text-white rounded-full shadow-float hover:shadow-card-hover hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center group">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+            <span id="cartBadge" class="absolute -top-1 -right-1 w-5 h-5 bg-ruby text-white text-[10px] font-normal rounded-full flex items-center justify-center opacity-0 scale-0 transition-all duration-300">0</span>
+        </button>
+    </div>
+
+    <!-- ==================== CART SIDEBAR ==================== -->
+    <div id="cartSidebar" class="fixed inset-0 z-50 pointer-events-none">
+        <div id="cartOverlay" onclick="toggleCart(false)" class="absolute inset-0 bg-ink/20 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
+        <div id="cartPanel" class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 pointer-events-auto">
+            <div class="flex flex-col h-full">
+                <div class="flex items-center justify-between px-6 py-5 border-b border-hairline">
+                    <h3 class="text-[20px] font-light text-ink tracking-tight" style="letter-spacing: -0.2px;">购物车</h3>
+                    <button onclick="toggleCart(false)" class="w-9 h-9 rounded-lg hover:bg-canvas-soft flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5 text-ink-mute" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="cartItems" class="flex-1 overflow-y-auto px-6 py-4">
+                    <!-- Empty state rendered by JS -->
+                </div>
+                <div id="cartFooter" class="border-t border-hairline px-6 py-5 hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-[15px] font-light text-ink-mute">合计</span>
+                        <span id="cartTotal" class="text-[22px] font-light text-ink font-tabular tracking-tight" style="letter-spacing: -0.22px;">¥0</span>
+                    </div>
+                    <button onclick="checkout()" class="w-full py-3.5 bg-primary text-white text-[15px] font-normal rounded-pill hover:bg-primary-deep active:bg-primary-press transition-colors duration-200">
+                        结算
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PRODUCT DETAIL MODAL ==================== -->
+    <div id="detailModal" class="modal-overlay">
+        <div class="backdrop" onclick="closeDetailModal()"></div>
+        <div class="modal-panel w-full max-w-2xl bg-white rounded-2xl shadow-2xl mx-4">
+            <div id="detailContent" class="p-0">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LOGIN / REGISTER MODAL ==================== -->
+    <div id="authModal" class="modal-overlay">
+        <div class="backdrop" onclick="closeAuthModal()"></div>
+        <div class="modal-panel w-full max-w-md bg-white rounded-2xl shadow-2xl mx-4 p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex gap-1 bg-canvas-soft rounded-pill p-1">
+                    <button id="loginTabBtn" class="auth-tab active px-6 py-2 text-[14px] font-normal rounded-pill transition-all" onclick="switchAuthTab('login')">登录</button>
+                    <button id="registerTabBtn" class="auth-tab px-6 py-2 text-[14px] font-normal rounded-pill transition-all" onclick="switchAuthTab('register')">注册</button>
+                </div>
+                <button onclick="closeAuthModal()" class="w-9 h-9 rounded-lg hover:bg-canvas-soft flex items-center justify-center transition-colors">
+                    <svg class="w-5 h-5 text-ink-mute" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <div class="mb-4">
+                    <label class="text-[13px] font-normal text-ink-mute block mb-1.5">邮箱</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com" class="w-full px-4 py-3 border border-hairline-input rounded-lg text-[14px] font-light text-ink focus:outline-none focus:border-primary transition-colors">
+                </div>
+                <div class="mb-6">
+                    <label class="text-[13px] font-normal text-ink-mute block mb-1.5">密码</label>
+                    <input type="password" id="loginPassword" placeholder="输入密码" class="w-full px-4 py-3 border border-hairline-input rounded-lg text-[14px] font-light text-ink focus:outline-none focus:border-primary transition-colors">
+                </div>
+                <button onclick="handleLogin()" class="w-full py-3 bg-primary text-white text-[15px] font-normal rounded-pill hover:bg-primary-deep active:bg-primary-press transition-colors duration-200">
+                    登录
+                </button>
+                <p id="loginError" class="text-[12px] text-ruby mt-2 hidden"></p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="auth-form hidden">
+                <div class="mb-4">
+                    <label class="text-[13px] font-normal text-ink-mute block mb-1.5">昵称</label>
+                    <input type="text" id="regName" placeholder="你的昵称" class="w-full px-4 py-3 border border-hairline-input rounded-lg text-[14px] font-light text-ink focus:outline-none focus:border-primary transition-colors">
+                </div>
+                <div class="mb-4">
+                    <label class="text-[13px] font-normal text-ink-mute block mb-1.5">邮箱</label>
+                    <input type="email" id="regEmail" placeholder="your@email.com" class="w-full px-4 py-3 border border-hairline-input rounded-lg text-[14px] font-light text-ink focus:outline-none focus:border-primary transition-colors">
+                </div>
+                <div class="mb-4">
+                    <label class="text-[13px] font-normal text-ink-mute block mb-1.5">密码</label>
+                    <input type="password" id="regPassword" placeholder="至少6位密码" class="w-full px-4 py-3 border border-hairline-input rounded-lg text-[14px] font-light text-ink focus:outline-none focus:border-primary transition-colors">
+                </div>
+                <div class="mb-6">
+                    <label class="text-[13px] font-normal text-ink-mute block mb-1.5">确认密码</label>
+                    <input type="password" id="regConfirm" placeholder="再次输入密码" class="w-full px-4 py-3 border border-hairline-input rounded-lg text-[14px] font-light text-ink focus:outline-none focus:border-primary transition-colors">
+                </div>
+                <button onclick="handleRegister()" class="w-full py-3 bg-primary text-white text-[15px] font-normal rounded-pill hover:bg-primary-deep active:bg-primary-press transition-colors duration-200">
+                    注册
+                </button>
+                <p id="regError" class="text-[12px] text-ruby mt-2 hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST ==================== -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-3.5 bg-ink text-white text-[14px] font-normal rounded-xl shadow-float translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 pointer-events-none">
+        <svg class="w-5 h-5 text-primary-soft flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // ================================================================
+        //  1. PRODUCT DATA (enhanced with description & specs)
+        // ================================================================
+        const products = [
+            {
+                id: 1, name: "无线降噪耳机 Pro", price: 1299, originalPrice: 1599,
+                image: "https://picsum.photos/seed/headphones/400/400", category: "数码", tag: "热销",
+                description: "旗舰级主动降噪耳机，40dB 深度降噪，Hi-Res 认证音质，30 小时超长续航。采用人体工学设计，柔软耳罩佩戴舒适，支持蓝牙 5.3 多设备连接。",
+                specs: ["降噪深度: 40dB", "续航: 30 小时", "连接: 蓝牙 5.3", "防水: IPX5", "驱动单元: 40mm"],
+                rating: 4.8, reviewsCount: 2341
+            },
+            {
+                id: 2, name: "智能手表 Series 7", price: 2499, originalPrice: 2999,
+                image: "https://picsum.photos/seed/watch/400/400", category: "数码", tag: "新品",
+                description: "全天候视网膜显示屏，血氧/心率/睡眠全维度健康监测。50 米防水，18 小时续航，支持 100+ 运动模式。",
+                specs: ["屏幕: 全天候 Retina", "健康: 血氧+心率+睡眠", "防水: 50 米", "续航: 18 小时", "运动: 100+ 模式"],
+                rating: 4.7, reviewsCount: 1823
+            },
+            {
+                id: 3, name: "机械键盘 RGB", price: 699, originalPrice: 899,
+                image: "https://picsum.photos/seed/keyboard/400/400", category: "数码", tag: null,
+                description: "全键热插拔轴座，Gasket 结构，PBT 键帽耐磨不打油。1680 万色 RGB 背光，三模连接（有线/2.4G/蓝牙）。",
+                specs: ["轴座: 全键热插拔", "结构: Gasket", "键帽: PBT", "连接: 三模", "背光: RGB 1680 万色"],
+                rating: 4.6, reviewsCount: 987
+            },
+            {
+                id: 4, name: "便携蓝牙音箱", price: 399, originalPrice: 499,
+                image: "https://picsum.photos/seed/speaker/400/400", category: "数码", tag: "特惠",
+                description: "IPX7 防水等级，20 小时续航，TWS 串联立体声。低音增强振膜，户外露营/浴室/桌游全能选手。",
+                specs: ["防水: IPX7", "续航: 20 小时", "串联: TWS 立体声", "重量: 540g", "输出: 20W"],
+                rating: 4.5, reviewsCount: 3210
+            },
+            {
+                id: 5, name: "极简台灯", price: 299, originalPrice: 399,
+                image: "https://picsum.photos/seed/lamp/400/400", category: "家居", tag: null,
+                description: "北欧极简设计，Ra>95 高显色无频闪。三档色温无极调光，触控滑动调光，护眼办公阅读首选。",
+                specs: ["显色: Ra>95", "色温: 三档可调", "调光: 无极滑动", "材质: 铝合金", "功率: 12W"],
+                rating: 4.4, reviewsCount: 1567
+            },
+            {
+                id: 6, name: "真皮钱包", price: 459, originalPrice: 599,
+                image: "https://picsum.photos/seed/wallet/400/400", category: "配饰", tag: "热销",
+                description: "头层牛皮手工缝制，植鞣工艺经久耐用。多卡位+大钞位+照片位，薄款设计贴身不鼓包。",
+                specs: ["材质: 头层牛皮", "工艺: 手工缝制", "卡位: 8 卡位", "颜色: 棕色/黑色", "尺寸: 11.5×9cm"],
+                rating: 4.6, reviewsCount: 892
+            },
+            {
+                id: 7, name: "陶瓷咖啡杯套装", price: 189, originalPrice: 249,
+                image: "https://picsum.photos/seed/cup/400/400", category: "家居", tag: null,
+                description: "日本哑光釉工艺，1300°C 高温烧制。一套四色，容量 300ml，手感温润，适合意式/手冲/美式。",
+                specs: ["工艺: 哑光釉", "温度: 1300°C", "容量: 300ml", "套装: 4 色", "适用: 微波炉/洗碗机"],
+                rating: 4.3, reviewsCount: 654
+            },
+            {
+                id: 8, name: "无线充电器", price: 149, originalPrice: 199,
+                image: "https://picsum.photos/seed/charger/400/400", category: "数码", tag: "特惠",
+                description: "15W 快充，兼容 iPhone/Android/耳机多设备。轻薄圆形设计，RGB 感应灯效，异物检测保护。",
+                specs: ["功率: 15W 快充", "兼容: Qi 协议", "灯效: RGB 感应", "保护: 异物检测", "厚度: 7mm"],
+                rating: 4.2, reviewsCount: 2103
+            },
+            {
+                id: 9, name: "帆布双肩包", price: 359, originalPrice: 459,
+                image: "https://picsum.photos/seed/backpack/400/400", category: "配饰", tag: null,
+                description: "加厚帆布防水涂层，大容量主仓可放 15.6 寸笔记本。多隔层收纳，背部透气垫设计，通勤出行首选。",
+                specs: ["材质: 加厚帆布", "防水: 涂层防水", "容量: 28L", "笔记本: 15.6 寸", "重量: 680g"],
+                rating: 4.5, reviewsCount: 1234
+            },
+            {
+                id: 10, name: "香薰蜡烛", price: 128, originalPrice: 168,
+                image: "https://picsum.photos/seed/candle/400/400", category: "家居", tag: "新品",
+                description: "天然大豆蜡+植物精油，45 小时燃烧时长。四款香型（白茶/雪松/薰衣草/海盐），无烟环保。",
+                specs: ["材质: 大豆蜡+精油", "燃烧: 45 小时", "香型: 4 款可选", "无烟: 是", "包装: 玻璃罐装"],
+                rating: 4.1, reviewsCount: 567
+            },
+            {
+                id: 11, name: "手机支架", price: 79, originalPrice: 99,
+                image: "https://picsum.photos/seed/stand/400/400", category: "数码", tag: null,
+                description: "航空铝合金材质，可调节角度俯仰。底部防滑硅胶，兼容手机/平板，桌面办公必备。",
+                specs: ["材质: 铝合金", "调节: 多角度", "防滑: 硅胶垫", "兼容: 4-12.9 寸", "重量: 210g"],
+                rating: 4.3, reviewsCount: 3456
+            },
+            {
+                id: 12, name: "太阳镜", price: 599, originalPrice: 799,
+                image: "https://picsum.photos/seed/sunglasses/400/400", category: "配饰", tag: "热销",
+                description: "偏光 TAC 镜片，UV400 全波段防护。TR90 超轻镜框，记忆铰链设计，驾驶/户外/日常皆宜。",
+                specs: ["镜片: 偏光 TAC", "防护: UV400", "镜框: TR90", "铰链: 记忆", "重量: 28g"],
+                rating: 4.7, reviewsCount: 1876
+            }
+        ];
+
+        // ================================================================
+        //  2. STATE
+        // ================================================================
+        let state = {
+            // filter & sort
+            category: 'all',
+            searchQuery: '',
+            sort: 'default',
+            // pagination
+            page: 1,
+            pageSize: 6,
+            // view mode: 'all' | 'wishlist'
+            view: 'all',
+            // auth
+            user: null,
+            // modals
+            showAuth: false,
+            authTab: 'login',
+            showDetail: false,
+            selectedProductId: null,
+            // data
+            cart: [],
+            favorites: [],
+        };
+
+        // ================================================================
+        //  3. DOM REFS
+        // ================================================================
+        const $ = id => document.getElementById(id);
+        const productGrid = $('productGrid');
+        const searchInput = $('searchInput');
+        const searchBtn = $('searchBtn');
+        const cartItems = $('cartItems');
+        const cartBadge = $('cartBadge');
+        const cartTotal = $('cartTotal');
+        const cartFooter = $('cartFooter');
+        const toast = $('toast');
+        const toastMessage = $('toastMessage');
+        const loadMoreBtn = $('loadMoreBtn');
+        const loadEnd = $('loadEnd');
+        const emptyState = $('emptyState');
+        const productCount = $('productCount');
+        const showingCount = $('showingCount');
+        const viewLabel = $('viewLabel');
+        const clearFilterBtn = $('clearFilterBtn');
+        const wishlistBadge = $('wishlistBadge');
+        const detailModal = $('detailModal');
+        const detailContent = $('detailContent');
+        const authModal = $('authModal');
+        const loginForm = $('loginForm');
+        const registerForm = $('registerForm');
+        const loginTabBtn = $('loginTabBtn');
+        const registerTabBtn = $('registerTabBtn');
+        const loginError = $('loginError');
+        const regError = $('regError');
+        const sortSelect = $('sortSelect');
+
+        // ================================================================
+        //  4. LOCAL STORAGE PERSISTENCE
+        // ================================================================
+        function saveToLS() {
+            try {
+                localStorage.setItem('eshop_cart', JSON.stringify(state.cart));
+                localStorage.setItem('eshop_favorites', JSON.stringify(state.favorites));
+                if (state.user) {
+                    localStorage.setItem('eshop_user', JSON.stringify(state.user));
+                }
+            } catch(e) {}
+        }
+
+        function loadFromLS() {
+            try {
+                const cart = localStorage.getItem('eshop_cart');
+                if (cart) state.cart = JSON.parse(cart);
+                const fav = localStorage.getItem('eshop_favorites');
+                if (fav) state.favorites = JSON.parse(fav);
+                const user = localStorage.getItem('eshop_user');
+                if (user) state.user = JSON.parse(user);
+            } catch(e) {}
+        }
+
+        // ================================================================
+        //  5. HELPER: get filtered / displayed products
+        // ================================================================
+        function getFilteredProducts() {
+            let list = [...products];
+
+            // Wishlist view
+            if (state.view === 'wishlist') {
+                list = list.filter(p => state.favorites.includes(p.id));
+            }
+
+            // Category filter
+            if (state.category !== 'all') {
+                list = list.filter(p => p.category === state.category);
+            }
+
+            // Search
+            if (state.searchQuery.trim()) {
+                const q = state.searchQuery.toLowerCase().trim();
+                list = list.filter(p =>
+                    p.name.toLowerCase().includes(q) ||
+                    p.category.toLowerCase().includes(q) ||
+                    p.tags?.some?.(t => t.toLowerCase().includes(q))
+                );
+            }
+
+            // Sort
+            switch (state.sort) {
+                case 'price-asc':
+                    list.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-desc':
+                    list.sort((a, b) => b.price - a.price);
+                    break;
+                case 'newest':
+                    list.sort((a, b) => b.id - a.id);
+                    break;
+                default:
+                    // keep original order
+                    break;
+            }
+
+            return list;
+        }
+
+        function getDisplayProducts(filtered) {
+            const start = 0;
+            const end = state.page * state.pageSize;
+            return filtered.slice(start, end);
+        }
+
+        // ================================================================
+        //  6. RENDER ENGINE
+        // ================================================================
+        function render() {
+            const filtered = getFilteredProducts();
+            const display = getDisplayProducts(filtered);
+            const totalFiltered = filtered.length;
+            const showing = display.length;
+
+            // Product grid
+            if (display.length === 0) {
+                productGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                loadMoreBtn.classList.add('hidden');
+                loadEnd.classList.add('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                productGrid.innerHTML = display.map((p, i) => renderCard(p, i)).join('');
+            }
+
+            // Counts
+            productCount.textContent = totalFiltered;
+
+            if (state.searchQuery || state.category !== 'all' || state.view === 'wishlist') {
+                showingCount.textContent = `（显示 ${showing} 件）`;
+            } else {
+                showingCount.textContent = '';
+            }
+
+            // View label
+            if (state.view === 'wishlist') {
+                viewLabel.textContent = '我的收藏';
+            } else if (state.searchQuery) {
+                viewLabel.textContent = `"${state.searchQuery}" 的搜索结果`;
+            } else if (state.category === 'all') {
+                viewLabel.textContent = '全部商品';
+            } else {
+                viewLabel.textContent = state.category;
+            }
+
+            // Clear filter button
+            const hasFilter = state.category !== 'all' || state.searchQuery || state.view === 'wishlist';
+            clearFilterBtn.classList.toggle('hidden', !hasFilter);
+
+            // Load more
+            const hasMore = showing < totalFiltered;
+            loadMoreBtn.classList.toggle('hidden', !hasMore);
+            loadEnd.classList.toggle('hidden', hasMore || totalFiltered === 0);
+
+            // Wishlist badge
+            if (state.favorites.length > 0) {
+                wishlistBadge.textContent = state.favorites.length;
+                wishlistBadge.classList.remove('opacity-0', 'scale-0');
+                wishlistBadge.classList.add('opacity-100', 'scale-100');
+            } else {
+                wishlistBadge.classList.add('opacity-0', 'scale-0');
+                wishlistBadge.classList.remove('opacity-100', 'scale-100');
+            }
+
+            // Cart badge + cart panel
+            updateCartUI();
+
+            // Filter button active state
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const cat = btn.dataset.category;
+                btn.classList.toggle('active', cat === state.category);
+                btn.classList.toggle('bg-primary', cat === state.category);
+                btn.classList.toggle('text-white', cat === state.category);
+                btn.classList.toggle('bg-white', cat !== state.category);
+                btn.classList.toggle('text-ink-mute', cat !== state.category);
+                btn.classList.toggle('border', cat !== state.category);
+                btn.classList.toggle('border-hairline', cat !== state.category);
+            });
+        }
+
+        function renderCard(product, index) {
+            const isFav = state.favorites.includes(product.id);
+            const tagColors = {
+                '热销': 'bg-ruby/10 text-ruby',
+                '新品': 'bg-emerald/10 text-emerald',
+                '特惠': 'bg-amber/10 text-amber',
+            };
+            const tagClass = tagColors[product.tag] || 'bg-primary-bg-subdued text-primary-deep';
+            return `
+                <div class="group bg-white rounded-[16px] overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 card-enter" style="animation-delay: ${(index % 6) * 60}ms;">
+                    <div class="product-image-container aspect-square bg-canvas-soft relative cursor-pointer" onclick="openDetailModal(${product.id})">
+                        <img src="${product.image}" alt="${product.name}" loading="lazy" class="w-full h-full object-cover object-top">
+                        ${product.tag ? `<span class="absolute top-3 left-3 px-2.5 py-1 ${tagClass} text-[10px] font-normal rounded-pill" style="letter-spacing: 0.1px;">${product.tag}</span>` : ''}
+                        <!-- Favorite button -->
+                        <button onclick="event.stopPropagation(); toggleFavorite(${product.id})" class="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-float">
+                            <svg class="w-[18px] h-[18px] transition-all ${isFav ? 'text-ruby fill-ruby heart-anim' : 'text-ink-mute fill-transparent'}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </button>
+                        <!-- Add to cart overlay -->
+                        <button onclick="event.stopPropagation(); addToCart(${product.id})" class="absolute bottom-3 right-3 w-10 h-10 bg-white rounded-full shadow-float opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 flex items-center justify-center hover:bg-primary hover:text-white text-ink">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-4 cursor-pointer" onclick="openDetailModal(${product.id})">
+                        <p class="text-[11px] font-normal text-ink-mute mb-1 uppercase tracking-wider" style="letter-spacing: 0.1px;">${product.category}</p>
+                        <h3 class="text-[15px] font-light text-ink leading-snug mb-2 line-clamp-2">${product.name}</h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[18px] font-light text-ink font-tabular tracking-tight">¥${product.price}</span>
+                            ${product.originalPrice ? `<span class="text-[13px] font-normal text-ink-mute line-through font-tabular">¥${product.originalPrice}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1 mt-1.5">
+                            <span class="text-[11px] text-amber">★ ${product.rating}</span>
+                            <span class="text-[11px] text-ink-mute/60">(${product.reviewsCount})</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ================================================================
+        //  7. FILTER / SORT / SEARCH ACTIONS
+        // ================================================================
+        function filterByCategory(cat) {
+            state.category = cat;
+            state.view = 'all';
+            state.page = 1;
+            render();
+            return false;
+        }
+
+        function changeSort(val) {
+            state.sort = val;
+            state.page = 1;
+            render();
+        }
+
+        function performSearch() {
+            const q = searchInput.value.trim();
+            state.searchQuery = q;
+            state.view = 'all';
+            state.page = 1;
+            if (q) state.category = 'all';
+            render();
+        }
+
+        function searchTag(tag) {
+            state.searchQuery = tag;
+            state.view = 'all';
+            state.page = 1;
+            state.category = 'all';
+            searchInput.value = tag;
+            render();
+        }
+
+        function clearFilters() {
+            state.searchQuery = '';
+            state.category = 'all';
+            state.view = 'all';
+            state.page = 1;
+            searchInput.value = '';
+            render();
+        }
+
+        function showHomeView() {
+            state.category = 'all';
+            state.searchQuery = '';
+            state.view = 'all';
+            state.page = 1;
+            searchInput.value = '';
+            render();
+            return false;
+        }
+
+        function showCategoryView(cat) {
+            state.category = cat;
+            state.view = 'all';
+            state.page = 1;
+            render();
+            return false;
+        }
+
+        function showWishlistView() {
+            if (state.favorites.length === 0) {
+                showToast('还没有收藏的商品', 'info');
+                return false;
+            }
+            state.view = 'wishlist';
+            state.category = 'all';
+            state.searchQuery = '';
+            state.page = 1;
+            render();
+            return false;
+        }
+
+        function toggleWishlistView() {
+            if (state.view === 'wishlist') {
+                showHomeView();
+            } else {
+                showWishlistView();
+            }
+        }
+
+        function resetAll() {
+            clearFilters();
+            render();
+        }
+
+        function loadMore() {
+            const filtered = getFilteredProducts();
+            const maxPage = Math.ceil(filtered.length / state.pageSize);
+            if (state.page < maxPage) {
+                state.page++;
+                render();
+            }
+        }
+
+        // ================================================================
+        //  8. CART ACTIONS
+        // ================================================================
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const existing = state.cart.find(item => item.id === productId);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                state.cart.push({ ...product, quantity: 1 });
+            }
+            saveToLS();
+            updateCartUI();
+            showToast(`${product.name} 已添加到购物车`);
+
+            // Animate cart button
+            const cartBtn = $('cartBtn');
+            cartBtn.classList.add('cart-bounce');
+            setTimeout(() => cartBtn.classList.remove('cart-bounce'), 400);
+        }
+
+        function removeFromCart(productId) {
+            state.cart = state.cart.filter(item => item.id !== productId);
+            saveToLS();
+            updateCartUI();
+        }
+
+        function updateQuantity(productId, delta) {
+            const item = state.cart.find(item => item.id === productId);
+            if (!item) return;
+            item.quantity += delta;
+            if (item.quantity <= 0) {
+                removeFromCart(productId);
+            } else {
+                saveToLS();
+                updateCartUI();
+            }
+        }
+
+        function updateCartUI() {
+            const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+            const totalPrice = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+            // Badge
+            if (totalItems > 0) {
+                cartBadge.textContent = totalItems;
+                cartBadge.classList.remove('opacity-0', 'scale-0');
+                cartBadge.classList.add('opacity-100', 'scale-100');
+            } else {
+                cartBadge.classList.add('opacity-0', 'scale-0');
+                cartBadge.classList.remove('opacity-100', 'scale-100');
+            }
+
+            // Cart panel
+            if (state.cart.length === 0) {
+                cartFooter.classList.add('hidden');
+                cartItems.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-center">
+                        <div class="w-20 h-20 rounded-2xl bg-canvas-soft flex items-center justify-center mb-4">
+                            <svg class="w-10 h-10 text-ink-mute/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                            </svg>
+                        </div>
+                        <p class="text-[15px] font-light text-ink-mute">购物车是空的</p>
+                        <p class="text-[13px] font-normal text-ink-mute/60 mt-1">快去挑选心仪的商品吧</p>
+                    </div>
+                `;
+            } else {
+                cartFooter.classList.remove('hidden');
+                cartItems.innerHTML = state.cart.map(item => `
+                    <div class="flex gap-4 py-4 border-b border-hairline last:border-0">
+                        <img src="${item.image}" alt="${item.name}" class="w-20 h-20 rounded-lg object-cover object-top bg-canvas-soft flex-shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-[14px] font-light text-ink leading-snug mb-1 truncate">${item.name}</h4>
+                            <p class="text-[13px] font-normal text-ink-mute mb-2">¥${item.price}</p>
+                            <div class="flex items-center gap-3">
+                                <button onclick="updateQuantity(${item.id}, -1)" class="w-7 h-7 rounded-lg border border-hairline flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                    </svg>
+                                </button>
+                                <span class="text-[14px] font-tabular text-ink w-6 text-center">${item.quantity}</span>
+                                <button onclick="updateQuantity(${item.id}, 1)" class="w-7 h-7 rounded-lg border border-hairline flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                </button>
+                                <button onclick="removeFromCart(${item.id})" class="ml-auto text-[11px] font-normal text-ink-mute hover:text-ruby transition-colors">删除</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                cartTotal.textContent = `¥${totalPrice.toLocaleString()}`;
+            }
+        }
+
+        // ================================================================
+        //  9. CART SIDEBAR TOGGLE
+        // ================================================================
+        let isCartOpen = false;
+
+        function toggleCart(show) {
+            isCartOpen = show;
+            const sidebar = $('cartSidebar');
+            const overlay = $('cartOverlay');
+            const panel = $('cartPanel');
+            if (show) {
+                sidebar.classList.remove('pointer-events-none');
+                overlay.classList.remove('opacity-0');
+                panel.classList.remove('translate-x-full');
+            } else {
+                sidebar.classList.add('pointer-events-none');
+                overlay.classList.add('opacity-0');
+                panel.classList.add('translate-x-full');
+            }
+        }
+
+        // ================================================================
+        //  10. FAVORITES
+        // ================================================================
+        function toggleFavorite(productId) {
+            const idx = state.favorites.indexOf(productId);
+            if (idx >= 0) {
+                state.favorites.splice(idx, 1);
+            } else {
+                state.favorites.push(productId);
+            }
+            saveToLS();
+            render();
+            const total = state.favorites.length;
+            if (total > 0) {
+                showToast(idx >= 0 ? '已取消收藏' : '已收藏');
+            }
+        }
+
+        // ================================================================
+        //  11. PRODUCT DETAIL MODAL
+        // ================================================================
+        function openDetailModal(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            state.selectedProductId = productId;
+            const isFav = state.favorites.includes(productId);
+            const inCart = state.cart.find(item => item.id === productId);
+            const tagColors = {
+                '热销': 'bg-ruby/10 text-ruby',
+                '新品': 'bg-emerald/10 text-emerald',
+                '特惠': 'bg-amber/10 text-amber',
+            };
+            const tagClass = tagColors[product.tag] || 'bg-primary-bg-subdued text-primary-deep';
+
+            detailContent.innerHTML = `
+                <div class="flex flex-col md:flex-row">
+                    <!-- Image -->
+                    <div class="md:w-1/2 bg-canvas-soft min-h-[300px] flex items-center">
+                        <img src="${product.image}" alt="${product.name}" width="400" height="400" loading="lazy" class="w-full h-full object-cover object-top" style="max-height: 400px;">
+                    </div>
+                    <!-- Info -->
+                    <div class="md:w-1/2 p-8">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <span class="text-[11px] font-normal text-ink-mute uppercase tracking-wider">${product.category}</span>
+                                ${product.tag ? `<span class="ml-2 px-2 py-0.5 ${tagClass} text-[10px] font-normal rounded-pill">${product.tag}</span>` : ''}
+                            </div>
+                            <button onclick="closeDetailModal()" class="w-8 h-8 rounded-lg hover:bg-canvas-soft flex items-center justify-center transition-colors flex-shrink-0">
+                                <svg class="w-4 h-4 text-ink-mute" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <h2 class="text-[22px] font-light text-ink leading-snug mb-3">${product.name}</h2>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-[24px] font-light text-ink font-tabular">¥${product.price}</span>
+                            ${product.originalPrice ? `<span class="text-[15px] font-normal text-ink-mute line-through font-tabular">¥${product.originalPrice}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1 mb-5">
+                            <span class="text-[14px] text-amber">★ ${product.rating}</span>
+                            <span class="text-[13px] text-ink-mute/60">(${product.reviewsCount} 条评价)</span>
+                        </div>
+                        <p class="text-[14px] font-light text-ink-secondary leading-relaxed mb-6">${product.description}</p>
+
+                        <!-- Specs -->
+                        <div class="mb-6">
+                            <h4 class="text-[12px] font-normal text-ink mb-3 uppercase tracking-wider">规格参数</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                ${product.specs.map(s => {
+                                    const [k, ...v] = s.split(': ');
+                                    return `
+                                        <div class="text-[12px]">
+                                            <span class="text-ink-mute">${k}</span>
+                                            <span class="text-ink ml-1">${v.join(': ')}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center gap-3">
+                            <button onclick="toggleFavorite(${product.id}); ${isFav ? `this.querySelector('svg').classList.remove('fill-ruby'); this.querySelector('svg').classList.add('fill-transparent');` : `this.querySelector('svg').classList.add('fill-ruby'); this.querySelector('svg').classList.remove('fill-transparent');`}; this.querySelector('svg').classList.add('heart-anim'); setTimeout(() => this.querySelector('svg').classList.remove('heart-anim'), 300)" class="w-12 h-12 rounded-full border border-hairline flex items-center justify-center hover:border-ruby hover:text-ruby transition-colors">
+                                <svg class="w-5 h-5 ${isFav ? 'text-ruby fill-ruby' : 'text-ink-mute fill-transparent'}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                            </button>
+                            <button onclick="addToCart(${product.id}); closeDetailModal()" class="flex-1 py-3 bg-primary text-white text-[14px] font-normal rounded-pill hover:bg-primary-deep active:bg-primary-press transition-colors duration-200 flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+                                </svg>
+                                加入购物车
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            state.showDetail = true;
+            // 补偿滚动条宽度，防止页面抖动
+            const sw = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = sw + 'px';
+            // 强制回流后再激活过渡动画，消除卡顿
+            detailModal.offsetHeight;
+            detailModal.classList.add('active');
+        }
+
+        function closeDetailModal() {
+            state.showDetail = false;
+            detailModal.classList.remove('active');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }
+
+        // ================================================================
+        //  12. AUTH (LOGIN / REGISTER)
+        // ================================================================
+        function openAuthModal(tab) {
+            state.authTab = tab || 'login';
+            const sw = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = sw + 'px';
+            authModal.offsetHeight;
+            authModal.classList.add('active');
+            switchAuthTab(state.authTab);
+        }
+
+        function closeAuthModal() {
+            state.showAuth = false;
+            authModal.classList.remove('active');
+            loginError.classList.add('hidden');
+            regError.classList.add('hidden');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }
+
+        function switchAuthTab(tab) {
+            state.authTab = tab;
+            loginForm.classList.toggle('hidden', tab !== 'login');
+            registerForm.classList.toggle('hidden', tab !== 'register');
+            loginTabBtn.classList.toggle('active', tab === 'login');
+            loginTabBtn.classList.toggle('bg-white', tab === 'login');
+            loginTabBtn.classList.toggle('shadow-sm', tab === 'login');
+            registerTabBtn.classList.toggle('active', tab === 'register');
+            registerTabBtn.classList.toggle('bg-white', tab === 'register');
+            registerTabBtn.classList.toggle('shadow-sm', tab === 'register');
+            loginError.classList.add('hidden');
+            regError.classList.add('hidden');
+        }
+
+        function handleLogin() {
+            const email = $('loginEmail').value.trim();
+            const password = $('loginPassword').value.trim();
+            loginError.classList.add('hidden');
+
+            if (!email || !password) {
+                loginError.textContent = '请填写邮箱和密码';
+                loginError.classList.remove('hidden');
+                return;
+            }
+            if (!email.includes('@')) {
+                loginError.textContent = '请输入有效的邮箱地址';
+                loginError.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 6) {
+                loginError.textContent = '密码至少6位';
+                loginError.classList.remove('hidden');
+                return;
+            }
+
+            // Simulate login: check localStorage
+            const users = JSON.parse(localStorage.getItem('eshop_users') || '{}');
+            if (users[email] && users[email].password === password) {
+                state.user = { email, name: users[email].name };
+                saveToLS();
+                closeAuthModal();
+                updateAuthUI();
+                showToast(`欢迎回来，${state.user.name}！`);
+            } else if (users[email]) {
+                loginError.textContent = '密码错误，请重试';
+                loginError.classList.remove('hidden');
+            } else {
+                loginError.textContent = '该邮箱未注册，请先注册';
+                loginError.classList.remove('hidden');
+            }
+        }
+
+        function handleRegister() {
+            const name = $('regName').value.trim();
+            const email = $('regEmail').value.trim();
+            const password = $('regPassword').value.trim();
+            const confirm = $('regConfirm').value.trim();
+            regError.classList.add('hidden');
+
+            if (!name || !email || !password || !confirm) {
+                regError.textContent = '请填写所有字段';
+                regError.classList.remove('hidden');
+                return;
+            }
+            if (!email.includes('@')) {
+                regError.textContent = '请输入有效的邮箱地址';
+                regError.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 6) {
+                regError.textContent = '密码至少6位';
+                regError.classList.remove('hidden');
+                return;
+            }
+            if (password !== confirm) {
+                regError.textContent = '两次密码输入不一致';
+                regError.classList.remove('hidden');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('eshop_users') || '{}');
+            if (users[email]) {
+                regError.textContent = '该邮箱已被注册';
+                regError.classList.remove('hidden');
+                return;
+            }
+
+            users[email] = { name, password };
+            localStorage.setItem('eshop_users', JSON.stringify(users));
+            state.user = { email, name };
+            saveToLS();
+            closeAuthModal();
+            updateAuthUI();
+            showToast(`注册成功，欢迎 ${name}！`);
+        }
+
+        function logout() {
+            state.user = null;
+            localStorage.removeItem('eshop_user');
+            updateAuthUI();
+            showToast('已退出登录');
+        }
+
+        function updateAuthUI() {
+            const authDisplay = $('authDisplay');
+            const registerBtn = $('registerNavBtn');
+            if (state.user) {
+                authDisplay.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-[14px] font-normal text-ink">${state.user.name}</span>
+                        <button onclick="logout()" class="text-[12px] font-normal text-ink-mute hover:text-ruby transition-colors">退出</button>
+                    </div>
+                `;
+                registerBtn.classList.add('hidden');
+            } else {
+                authDisplay.innerHTML = `
+                    <button onclick="openAuthModal('login')" class="hidden sm:block px-4 py-2 text-[14px] font-normal text-primary hover:bg-primary-bg-subdued rounded-pill transition-colors duration-200">
+                        登录
+                    </button>
+                `;
+                registerBtn.classList.remove('hidden');
+            }
+        }
+
+        // ================================================================
+        //  13. CHECKOUT
+        // ================================================================
+        function checkout() {
+            if (state.cart.length === 0) {
+                showToast('购物车是空的', 'info');
+                return;
+            }
+            if (!state.user) {
+                showToast('请先登录再结算', 'info');
+                toggleCart(false);
+                setTimeout(() => openAuthModal('login'), 400);
+                return;
+            }
+            const total = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            showToast(`订单已提交！合计 ¥${total.toLocaleString()}，感谢购买 🎉`);
+            state.cart = [];
+            saveToLS();
+            updateCartUI();
+            toggleCart(false);
+        }
+
+        // ================================================================
+        //  14. TOAST
+        // ================================================================
+        let toastTimer = null;
+
+        function showToast(message, type) {
+            toastMessage.textContent = message;
+            toast.classList.add('toast-show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('toast-show');
+            }, 2500);
+        }
+
+        // ================================================================
+        //  15. EVENT LISTENERS
+        // ================================================================
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+        searchInput.addEventListener('input', (e) => {
+            if (!e.target.value.trim()) {
+                state.searchQuery = '';
+                state.view = 'all';
+                state.page = 1;
+                render();
+            }
+        });
+
+        // Login button (dynamic - use delegation)
+        document.addEventListener('click', (e) => {
+            const loginBtn = e.target.closest('#loginBtn');
+            if (loginBtn) {
+                openAuthModal('login');
+            }
+        });
+
+        $('registerNavBtn').addEventListener('click', () => openAuthModal('register'));
+
+        // Close modals on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (state.showDetail) closeDetailModal();
+                if (authModal.classList.contains('active')) closeAuthModal();
+            }
+        });
+
+        // ================================================================
+        //  16. INIT
+        // ================================================================
+        loadFromLS();
+        updateAuthUI();
+        render();
+
+        // Add filter-btn base styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .filter-btn {
+                padding: 6px 16px;
+                font-size: 13px;
+                font-weight: 400;
+                border-radius: 9999px;
+                transition: all 0.2s;
+                cursor: pointer;
+                border: 1px solid transparent;
+            }
+            .filter-btn:not(.active) {
+                background: white;
+                color: #64748d;
+                border-color: #e3e8ee;
+            }
+            .filter-btn:not(.active):hover {
+                border-color: #533afd;
+                color: #533afd;
+            }
+            .auth-tab {
+                cursor: pointer;
+                min-width: 80px;
+            }
+            .auth-tab.active {
+                background: white;
+                box-shadow: 0 1px 3px rgba(0,55,112,0.08);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

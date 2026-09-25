@@ -1,0 +1,45 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: eshop-order-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/eshop_order?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        ip: 127.0.0.1
+
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: auto
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 3000
+        read-timeout: 5000
+
+logging:
+  level:
+    com.eshop.order.feign: DEBUG
+
+# Sentinel 熔断降级
+spring.cloud.sentinel:
+  transport:
+    dashboard: localhost:8718
+spring.cloud.openfeign.sentinel.enabled: true

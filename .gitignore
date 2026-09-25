@@ -1,0 +1,39 @@
+# ==================== 构建产物 ====================
+target/
+dist/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# ==================== 依赖 ====================
+node_modules/
+
+# ==================== 日志 ====================
+logs/
+*.log
+
+# ==================== 运行时 / 临时文件 ====================
+# Nacos 运行时（约 250MB，请自行下载，见 README「配置说明」）
+work/
+tmp/
+output/
+__pycache__/
+*.pyc
+
+# ==================== 本地配置与密钥（切勿提交） ====================
+# AI 服务 API Key 等敏感配置请放在这里，不要写进 application.yml
+.env
+.env.*
+application-local.yml
+application-local.properties
+.claude/settings.local.json
+
+# ==================== IDE ====================
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# ==================== 系统 ====================
+.DS_Store
+Thumbs.db

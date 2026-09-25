@@ -1,0 +1,55 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: eshop-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        ip: 127.0.0.1
+    gateway:
+      routes:
+        # 用户服务
+        - id: user-service
+          uri: lb://eshop-user-service
+          predicates:
+            - Path=/api/user/**
+
+        # 商品服务
+        - id: product-service
+          uri: lb://eshop-product-service
+          predicates:
+            - Path=/api/product/**
+
+        # 购物车服务
+        - id: cart-service
+          uri: lb://eshop-cart-service
+          predicates:
+            - Path=/api/cart/**
+
+        # 订单服务
+        - id: order-service
+          uri: lb://eshop-order-service
+          predicates:
+            - Path=/api/order/**
+
+        # AI 导购服务
+        - id: ai-guide-service
+          uri: lb://eshop-ai-guide-service
+          predicates:
+            - Path=/api/ai/**
+
+logging:
+  level:
+    com.eshop.gateway: INFO
+
+# Sentinel 网关流控
+spring.cloud.sentinel:
+  transport:
+    dashboard: localhost:8718  # Sentinel 仪表盘地址（可选）
+  scg.fallback:
+    mode: response
+    response-status: 503
+    response-body: '{"code":503,"message":"服务繁忙，请稍后再试"}'

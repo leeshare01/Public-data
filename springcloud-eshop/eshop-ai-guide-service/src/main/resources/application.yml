@@ -1,0 +1,80 @@
+server:
+  port: 8085
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: eshop-ai-guide-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/eshop_ai?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        ip: 127.0.0.1
+
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: auto
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# DeepSeek API 配置
+# Sentinel 熔断降级
+spring.cloud.sentinel:
+  transport:
+    dashboard: localhost:8718
+
+# 开启 Feign Sentinel 支持
+spring.cloud.openfeign.sentinel.enabled: true
+
+# 直连 Product 服务（当 Nacos 不可用时）
+product:
+  service:
+    url: http://localhost:8082
+
+deepseek:
+  # DeepSeek API Key —— 必须通过环境变量 DEEPSEEK_API_KEY 注入，请勿硬编码提交到仓库
+  # 申请地址：https://platform.deepseek.com/api_keys
+  # 未配置时应用仍可正常启动，仅 AI 导购对话功能不可用（详见 README 的「配置说明」）
+  api-key: ${DEEPSEEK_API_KEY:}
+  # 对话模型名称
+  model: ${DEEPSEEK_MODEL:deepseek-v4-flash}
+  # API 基础地址
+  base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+  # 请求超时（毫秒）
+  timeout: 60000
+
+# ========== RAG 向量检索配置 ==========
+vector:
+  # 向量存储类型：in-memory（默认，无需额外基础设施）
+  store: in-memory
+  embedding:
+    # 嵌入实现：
+    #   ngram  — 基于中文 n-gram 哈希的本地嵌入，无需外部 API，开箱即用
+    #   openai — 兼容 OpenAI Embedding API（SiliconFlow BGE / DashScope / OpenAI）
+    provider: ngram
+    dim: 768
+    # n-gram 嵌入参数（provider=ngram 时生效）
+    ngram:
+      bigram: true   # 启用双字词特征
+      trigram: true  # 启用三字词特征
+    # OpenAI 兼容嵌入 API 配置（provider=openai 时生效）
+    # 示例：SiliconFlow BGE-M3（免费注册：https://siliconflow.cn）
+    openai:
+      api-key: ${EMBEDDING_API_KEY:}
+      base-url: ${EMBEDDING_BASE_URL:https://api.siliconflow.cn/v1}
+      model: ${EMBEDDING_MODEL:BAAI/bge-m3}

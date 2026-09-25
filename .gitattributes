@@ -1,0 +1,23 @@
+# ==================== 换行符规范化 ====================
+# 默认由 Git 自动判断文本文件，统一以 LF 存入仓库
+* text=auto
+
+# Windows 批处理必须用 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell 脚本必须用 LF，否则 Linux/macOS 下报 "bad interpreter: /bin/bash^M"
+*.sh text eol=lf
+
+# ==================== 二进制文件不做转换 ====================
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.gif  binary
+*.ico  binary
+*.svg  text
+*.jar  binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.eot  binary
