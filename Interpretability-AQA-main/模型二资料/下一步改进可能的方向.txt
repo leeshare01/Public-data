@@ -1,0 +1,30 @@
+解决方式
+
+  1. Fis-V RL2 不收敛 → 换特征提取器
+
+  当前 Swin-T 特征对 Fis-V TES 分数的可预测性本身就是天花板。RL2 从 epoch 1 到 epoch 209 都在 2.x
+  晃，说明特征-标签的 MSE 关系弱。
+
+  方案: 尝试用 I3D 或 CLIP 重新提取 Fis-V 特征。如果手上没 I3D 权重，可以先把 ViViT 的 max_len
+  对齐（当前 models/__init__.py:11 硬编码 103，Fis-V 是 136），排除这个不匹配。
+
+  2. RG 加 early stopping → 一行配置
+
+  ---
+  解决方式
+
+  1. Fis-V RL2 不收敛 → 换特征提取器
+
+  当前 Swin-T 特征对 Fis-V TES 分数的可预测性本身就是天花板。RL2 从 epoch 1 到 epoch 209 都在 2.x
+  晃，说明特征-标签的 MSE 关系弱。
+
+  方案: 尝试用 I3D 或 CLIP 重新提取 Fis-V 特征。如果手上没 I3D 权重，可以先把 ViViT 的 max_len
+  对齐（当前 models/__init__.py:11 硬编码 103，Fis-V 是 136），排除这个不匹配。
+
+  early_stop_patience = 50
+
+  3. IJCV 模块 → 补 evaluator + loss
+
+  - evaluator.py 加 Difficulty 分支（独立 MLP，对称于现有的 x_mean）
+  - evaluator.py 加 var 输出（一个 Linear(256,1) + softplus）
+  - run.py 把 loss 改为 D/Q 加权组合

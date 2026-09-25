@@ -1,0 +1,10 @@
+
+===========================================================================
+  Dataset: gym  |  Label: Ribbon  |  Seed: 5
+  Backbone: vivit  |  Neck: TQN  |  Layers: 2  |  Query Var: 2  |  PE: query_pe
+  Att Loss: True  |  Dino Loss: True  |  Epochs: 1000  |  LR: 0.0001  |  Batch: 48
+===========================================================================
+  Started: 0521_0526
+  Best SRCC: 0.8398  |  Best RL2: 1.1759  |  Best Epoch: 58
+  Stop reason: completed
+===========================================================================

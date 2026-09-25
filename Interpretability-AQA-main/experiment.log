@@ -1,0 +1,7 @@
+2026-05-17 19:08:09,406 - INFO - dataset: gym, seed: 5, label: Ribbon, query_var: 2, pe: query_pe, att_loss: True, dino_loss:True, num_layers: 2, SRCC: 0.829715713595952, RL2: 0.13222757530150997
+2026-05-17 19:20:39,391 - INFO - dataset: fisv, seed: 999, label: TES, query_var: 5, pe: query_pe, att_loss: True, dino_loss:True, num_layers: 2, SRCC: 0.6695189604559401, RL2: 1.2007268305596213
+2026-05-19 00:49:49,601 - INFO - dataset: fisv, seed: 999, label: TES, query_var: 5, pe: query_pe, att_loss: True, dino_loss: True, num_layers: 2, SRCC: 0.6790779450313944, RL2: 1.1529052094254435
+2026-05-19 20:57:48,806 - INFO - dataset: fisv, seed: 999, label: TES, query_var: 5, pe: query_pe, att_loss: True, dino_loss: True, num_layers: 2, SRCC: 0.41163039793283956, RL2: 0.02291197770718455
+2026-05-19 21:57:26,816 - INFO - dataset: fisv, seed: 999, label: TES, query_var: 5, pe: query_pe, att_loss: True, dino_loss: False, num_layers: 2, SRCC: 0.6560655747571524, RL2: 1.3595115201286905
+2026-05-20 12:05:52,310 - INFO - dataset: fisv, seed: 999, label: TES, query_var: 5, pe: query_pe, att_loss: True, dino_loss: False, num_layers: 2, SRCC: 0.6558495525068597, RL2: 2.307189832963358
+2026-05-20 14:01:58,058 - INFO - dataset: fisv, seed: 999, label: TES, query_var: 5, pe: query_pe, att_loss: True, dino_loss: False, num_layers: 2, SRCC: 0.6558495525068597, RL2: 2.307189832963358

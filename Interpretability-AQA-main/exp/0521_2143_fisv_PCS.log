@@ -1,0 +1,10 @@
+
+===========================================================================
+  Dataset: fisv  |  Label: PCS  |  Seed: 999
+  Backbone: vivit  |  Neck: TQN  |  Layers: 2  |  Query Var: 2  |  PE: query_pe
+  Att Loss: True  |  Dino Loss: True  |  Epochs: 1000  |  LR: 5e-05  |  Batch: 32
+===========================================================================
+  Started: 0521_2143
+  Best SRCC: 0.8039  |  Best RL2: 3.3879  |  Best Epoch: 66
+  Stop reason: early stopped
+===========================================================================

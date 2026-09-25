@@ -1,0 +1,10 @@
+
+===========================================================================
+  Dataset: fisv  |  Label: TES  |  Seed: 999
+  Backbone: vivit  |  Neck: TQN  |  Layers: 2  |  Query Var: 2  |  PE: query_pe
+  Att Loss: True  |  Dino Loss: True  |  Epochs: 1000  |  LR: 5e-05  |  Batch: 32
+===========================================================================
+  Started: 0520_2343
+  Best SRCC: 0.6925  |  Best RL2: 2.6617  |  Best Epoch: 157
+  Stop reason: early stopped
+===========================================================================

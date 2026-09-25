@@ -1,0 +1,38 @@
+# Python cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.so
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+ENV/
+Pipfile.lock
+poetry.lock
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+
+ckpts/*.pt
+# ==================== 本仓库（Public-data）特有 ====================
+# 上层 Public-data 的 .gitignore 有全局 `*.log` 规则，会屏蔽训练日志。
+# 这里显式恢复本项目下的日志文件。
+!*.log
+
+# 模型权重体积过大（单个 600MB+），GitHub 单文件上限 100MB，不上传。
+ckpts/
+*.pt
+*.pth
