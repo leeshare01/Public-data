@@ -396,7 +396,7 @@ if __name__ == "__main__":
     sql = result["sql"]
     stats = result["stats"]
     # 输出到文件
-    output_path = "C:\\Users\\jie\\Desktop\\study\\springcloud-eshop\\sql\\data_products.sql"
+    output_path = "C:\\Users\\<你的用户名>\\Desktop\\study\\springcloud-eshop\\sql\\data_products.sql"
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(sql)
     print(f"SQL 已生成到: {output_path}")

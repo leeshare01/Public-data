@@ -40,7 +40,7 @@ for idx, (name, subtitle, brand, desc, cat_id, orig, price, sales) in enumerate(
 
 output += "]"
 
-with open("c:\\Users\\jie\\Desktop\\study\\frontend\\src\\mock\\products.js", "w", encoding="utf-8") as f:
+with open("c:\\Users\\<你的用户名>\\Desktop\\study\\frontend\\src\\mock\\products.js", "w", encoding="utf-8") as f:
     f.write(output)
 
 print(f"Mock数据已生成，共 {len(PRODUCT_TEMPLATES)} 个商品")

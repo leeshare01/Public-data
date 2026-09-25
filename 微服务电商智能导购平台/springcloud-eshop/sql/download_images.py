@@ -5,7 +5,7 @@ import random
 import time
 from generate_data import PRODUCT_TEMPLATES
 
-OUTPUT_DIR = "c:\\Users\\jie\\Desktop\\study\\frontend\\public\\images\\products"
+OUTPUT_DIR = "c:\\Users\\<你的用户名>\\Desktop\\study\\frontend\\public\\images\\products"
 
 
 def sanitize_filename(name):
